@@ -25,7 +25,7 @@ mrproper: clean
 
 install:
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp sup ${DESTDIR}${PREFIX}/bin
+	cp -f sup ${DESTDIR}${PREFIX}/bin
 	-chown ${USER}:${GROUP} ${DESTDIR}/${PREFIX}/bin/sup
 	-chmod 4111 ${DESTDIR}${PREFIX}/bin/sup
 	mkdir -p ${DESTDIR}${PREFIX}/share/man/man1
