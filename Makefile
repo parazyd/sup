@@ -28,5 +28,6 @@ install:
 	cp sup ${DESTDIR}${PREFIX}/bin
 	-chown ${USER}:${GROUP} ${DESTDIR}/${PREFIX}/bin/sup
 	-chmod 4111 ${DESTDIR}${PREFIX}/bin/sup
+	mkdir -p ${DESTDIR}${PREFIX}/share/man/man1
 	sed s,VERSION,${VERSION}, sup.1 \
 	  > ${DESTDIR}${PREFIX}/share/man/man1/sup.1
