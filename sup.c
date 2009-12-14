@@ -60,10 +60,14 @@ int main(int argc, char **argv) {
 			    seteuid (SETUID) == -1 || setegid (SETGID) == -1)
 				return die (1, strerror (errno));
 #ifdef CHROOT
-			if (chroot (CHROOT) == -1)
+			if (*CHROOT)
+			if (chdir (CHROOT) == -1 || chroot (".") == -1)
 				return die (1, strerror (errno));
+			if (*CHRDIR)
+				if (chdir (CHRDIR) == -1)
+					return die (1, strerror (errno));
 #endif
-			ret = execv (rules[i].path? rules[i].path:argv[1], argv+1);
+			ret = execv (*rules[i].path? rules[i].path:argv[1], argv+1);
 			return die (ret, strerror (errno));
 		}
 	}

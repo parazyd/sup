@@ -4,7 +4,8 @@
 #define SETUID 0
 #define SETGID 0
 
-#define CHROOT "/"
+#define CHROOT ""
+#define CHRDIR ""
 
 #define ENFORCE 1
 
