@@ -61,8 +61,8 @@ int main(int argc, char **argv) {
 				return die (1, strerror (errno));
 #ifdef CHROOT
 			if (*CHROOT)
-			if (chdir (CHROOT) == -1 || chroot (".") == -1)
-				return die (1, strerror (errno));
+				if (chdir (CHROOT) == -1 || chroot (".") == -1)
+					return die (1, strerror (errno));
 			if (*CHRDIR)
 				if (chdir (CHRDIR) == -1)
 					return die (1, strerror (errno));
