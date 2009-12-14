@@ -26,7 +26,7 @@ mrproper: clean
 install:
 	mkdir -p ${DESTDIR}${PREFIX}/bin
 	cp sup ${DESTDIR}${PREFIX}/bin
-	chown ${USER}:${GROUP} ${DESTDIR}/${PREFIX}/bin/sup
-	chmod 4111 ${DESTDIR}${PREFIX}/bin/sup
+	-chown ${USER}:${GROUP} ${DESTDIR}/${PREFIX}/bin/sup
+	-chmod 4111 ${DESTDIR}${PREFIX}/bin/sup
 	sed s,VERSION,${VERSION}, sup.1 \
 	  > ${DESTDIR}${PREFIX}/share/man/man1/sup.1
