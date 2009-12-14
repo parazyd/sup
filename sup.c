@@ -1,7 +1,8 @@
 /* pancake <nopcode.org> -- Copyleft 2009 */
 
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -23,7 +24,6 @@ static int die(int ret, const char *str) {
 }
 
 int main(int argc, char **argv) {
-	char *cmd;
 	int i, uid, gid, ret;
 
 	if (argc < 2 || !strcmp (argv[1], "-h"))

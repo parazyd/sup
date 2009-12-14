@@ -4,6 +4,7 @@ PREFIX?=/usr
 VERSION=0.1
 USER=root
 GROUP=root
+CFLAGS?=-O2 -Wall
 
 all: config.h sup
 
@@ -11,10 +12,10 @@ config.h:
 	cp config.def.h config.h
 
 sup.o: config.h sup.c
-	${CC} -c sup.c
+	${CC} ${CFLAGS} -c sup.c
 
 sup: sup.o
-	${CC} sup.o -o sup
+	${CC} ${LDFLAGS} sup.o -o sup
 
 clean:
 	rm -f sup.o sup
