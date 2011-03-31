@@ -14,6 +14,7 @@ static struct rule_t rules[] = {
 	{ USER, GROUP, "ifconfig", "/sbin/ifconfig" },
 	{ USER, GROUP, "ls", "/bin/ls" },
 	{ USER, GROUP, "wifi", "/root/wifi.sh" },
-	{ USER, GROUP, "", ""}, // allow to run any program
+	{ USER, GROUP, "cp", "*"}, // allow to run this program in PATH
+	{ USER, GROUP, "*", "*"}, // allow to run any program in PATH
 	{ 0 },
 };
