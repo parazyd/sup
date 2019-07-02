@@ -1,33 +1,36 @@
-CC?=gcc
-DESTDIR?=
-PREFIX?=/usr
-VERSION=0.1
-USER=root
-GROUP=root
-CFLAGS?=-O2 -Wall
+# sup: scale user privileges
+# See LICENSE file for copyright and license details.
+.POSIX:
 
-all: config.h sup
+include config.mk
+
+BIN = sup
+MAN = $(BIN).1
+OBJ = $(BIN:=.o) sha256.o
+
+all: $(BIN)
+
+$(OBJ): config.h config.mk
 
 config.h:
 	cp config.def.h config.h
 
-sup.o: config.h sup.c
-	${CC} ${CFLAGS} -c sup.c
-
-sup: sup.o
-	${CC} ${LDFLAGS} sup.o -o sup
+$(BIN): $(OBJ)
+	$(CC) $(OBJ) $(LDFLAGS) -o $@
 
 clean:
-	rm -f sup.o sup
+	rm -f $(BIN) $(OBJ)
 
-mrproper: clean
-	rm -f config.h
+install: all
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp -f $(BIN) $(DESTDIR)$(PREFIX)/bin
+	chmod 4711 $(DESTDIR)$(PREFIX)/bin/$(BIN)
+	mkdir -p $(DESTDIR)$(MANDIR)
+	cp -r $(MAN) $(DESTDIR)$(MANDIR)
 
-install:
-	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f sup ${DESTDIR}${PREFIX}/bin
-	-chown ${USER}:${GROUP} ${DESTDIR}/${PREFIX}/bin/sup
-	-chmod 4111 ${DESTDIR}${PREFIX}/bin/sup
-	mkdir -p ${DESTDIR}${PREFIX}/share/man/man1
-	sed s,VERSION,${VERSION}, sup.1 \
-	  > ${DESTDIR}${PREFIX}/share/man/man1/sup.1
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(BIN)
+	rm -f $(DESTDIR)$(PREFIX)/$(MAN)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
