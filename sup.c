@@ -1,103 +1,111 @@
-/* pancake <nopcode.org> -- Copyleft 2009-2011 */
+/* See LICENSE file for copyright and license details. */
 
-#include <errno.h>
-#include <unistd.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
-#define HELP "sup [-hlv] [cmd ..]"
-#define VERSION "sup 0.1 pancake <nopcode.org> copyleft 2011"
+#include "arg.h"
+#include "sha256.h"
+
+#define nelem(x) (sizeof (x) / sizeof *(x))
 
 struct rule_t {
-	int uid;
-	int gid;
+	const int uid;
 	const char *cmd;
 	const char *path;
+	const char *hash;
 };
 
 #include "config.h"
 
-static int die(int ret, const char *org, const char *str) {
-	fprintf (stderr, "%s%s%s\n", org?org:"", org?": ":"", str);
-	return ret;
+char *argv0;
+
+void die(char *msg) {
+	fprintf(stderr, "%s\n", msg);
+	exit(1);
 }
 
-static char *getpath(const char *str) {
-	struct stat st;
-	static char file[4096];
-	char *p, *path = getenv ("PATH");
-	if (path)
-	for (p = path; *p; p++) {
-		if (*p==':' && (p>path&&*(p-1)!='\\')) {
-			*p = 0;
-			snprintf (file, sizeof (file)-1, "%s/%s", path, str);
-			if (!lstat (file, &st))
-				return file;
-			*p = ':';
-			path = p+1;
-		}
+#define CHUNK 1048576 /* 1MiB */
+static uint32 getsha(const char *path, unsigned char *dest) {
+	static sha256_context sha;
+
+	unsigned char buf[CHUNK];
+	uint32 len, tot = 0;
+	FILE *fd;
+
+	fd = fopen(path, "r");
+	if (!fd)
+		die("Can not read binary file.");
+
+	sha256_starts(&sha);
+
+	while ((len = fread(buf, 1, CHUNK, fd))) {
+		sha256_update(&sha, buf, len);
+		tot += len;
 	}
-	return NULL;
+	fclose(fd);
+
+	sha256_finish(&sha, dest);
+	return tot;
 }
 
-int main(int argc, char **argv) {
-	const char *cmd;
-	int i, uid, gid, ret;
+int main(int argc, char *argv[]) {
+	unsigned int c, i, lflag = 0;
+	unsigned char digest[32];
+	char output[65];
+	struct stat st;
 
-	if (argc < 2 || !strcmp (argv[1], "-h"))
-		return die (1, NULL, HELP);
+	ARGBEGIN {
+		case 'l':
+			lflag = 1;
+			break;
+		default:
+			die("Usage: sup [-l] command [ args ... ]");
+	} ARGEND;
 
-	if (!strcmp (argv[1], "-v"))
-		return die (1, NULL, VERSION);
+	if (lflag) {
+		printf("List of compiled authorizations:\n");
+		for (i = 0; i < nelem(rules); i++)
+			printf("\nuser: %d\ncmd: %s\nbinary: %s\nsha256: %s\n",
+					rules[i].uid, rules[i].cmd, rules[i].path, rules[i].hash);
 
-	if (!strcmp (argv[1], "-l")) {
-		for (i = 0; rules[i].cmd != NULL; i++)
-			printf ("%d %d %10s %s\n", rules[i].uid, rules[i].gid,
-				rules[i].cmd, rules[i].path);
 		return 0;
 	}
 
-	uid = getuid ();
-	gid = getgid ();
+	if (argc < 1)
+		die("Usage: sup [-l] command [ args ... ]");
 
-	for (i = 0; rules[i].cmd != NULL; i++) {
-		if (*rules[i].cmd=='*' || !strcmp (argv[1], rules[i].cmd)) {
-#if ENFORCE	
-			struct stat st;
-			if (*rules[i].path=='*') {
-				if (*argv[1]=='.' || *argv[1]=='/')
-					cmd = argv[1];
-				else if (!(cmd = getpath (argv[1])))
-					return die (1, "execv", "cannot find program");
-			} else cmd = rules[i].path;
-			if (lstat (cmd, &st) == -1)
-				return die (1, "lstat", "cannot stat program");
-			if (st.st_mode & 0222)
-				return die (1, "stat", "cannot run writable binaries.");
-#endif
-			if (uid != SETUID && rules[i].uid != -1 && rules[i].uid != uid)
-				return die (1, "urule", "user does not match");
+	for (i = 0; i < nelem(rules); i++) {
+		if (!strcmp(argv[0], rules[i].cmd)) {
 
-			if (gid != SETGID && rules[i].gid != -1 && rules[i].gid != gid)
-				return die (1, "grule", "group id does not match");
+			if (rules[i].uid != getuid() && rules[i].uid != -1)
+				die("Unauthorized user.");
 
-			if (setuid (SETUID) == -1 || setgid (SETGID) == -1 ||
-			    seteuid (SETUID) == -1 || setegid (SETGID) == -1)
-				return die (1, "set[e][ug]id", strerror (errno));
-#ifdef CHROOT
-			if (*CHROOT)
-				if (chdir (CHROOT) == -1 || chroot (".") == -1)
-					return die (1, "chroot", strerror (errno));
-			if (*CHRDIR)
-				if (chdir (CHRDIR) == -1)
-					return die (1, "chdir", strerror (errno));
-#endif
-			ret = execv (cmd, argv+1);
-			return die (ret, "execv", strerror (errno));
+			if (stat(rules[i].path, &st) == -1)
+				die("Can not stat program.");
+
+			if (st.st_mode & 0022)
+				die("Can not run binaries others can write.");
+
+			if (getsha(rules[i].path, digest) != st.st_size)
+				die("Binary file differs from size read.");
+
+			for (c = 0; c < 32; c++)
+				sprintf(output + (c*2), "%02x", digest[c]);
+			output[64] = '\0';
+
+			if (strncmp(rules[i].hash, output, 64))
+				die("Checksums do not match.");
+
+			if (setgid(SETGID) < 0) die("setgid failed");
+			if (setuid(SETUID) < 0) die("setuid failed");
+
+			if (execv(rules[i].path, argv) < 0)
+				die("execv failed.");
 		}
 	}
 
-	return die (1, NULL, "Sorry");
+	die("Unauthorized command.");
 }
