@@ -1,23 +1,26 @@
-.TH SUP 1 sup\-VERSION
+.TH SUP 1 2019-07-02
 .SH NAME
-sup - scale user priviledges
+sup \- scale user privileges
 .SH SYNOPSIS
 .B sup
-.RB [ \-hlv ]
+.IR command
+[
+.IR args
+\ ... ]
+.br
+.B sup -l
+.PP
 .SH DESCRIPTION
-sup is a minimal priviledge scalation utility that allow normal
-users to run other programs as different user and group.
-.P
+sup is a minimal privilege escalation utility that allows normal users
+to run other programs as different user and group. It is "secured" by
+hardcofing SHA256 sums of the executables into itself to decide if a
+user is actually authorized to run the requested command.
+.TP
 The configuration is done in config.h at compile time.
 .SH OPTIONS
-.TP
-.B \-h
-print help message
-.TP
 .B \-l
-list command whitelist
-.TP
-.B \-v
-prints version information
-.SH AUTHOR
-pancake <nopcode.org>
+List compiled authorizations
+.SH AUTHORS
+See the LICENSE file for the authors.
+.SH LICENSE
+See the LICENSE file for the terms of redistribution.
