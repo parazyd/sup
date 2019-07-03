@@ -1,0 +1,16 @@
+sup - scale user privileges
+===========================
+sup is a small tool for privilege escalation that allows normal users
+to run other programs as a different user and group.
+
+
+Configuration
+-------------
+Use the config.h file to apply authorizations that you want to allow in
+sup. After editing, make sure to recompile and reinstall.
+
+
+Installation
+------------
+Edit config.mk to match your local setup and execute `make install` as
+root. By default, sup will be installed into the /usr/local namespace.
