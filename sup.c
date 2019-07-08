@@ -10,6 +10,7 @@
 #include "sha256.h"
 
 #define nelem(x) (sizeof (x) / sizeof *(x))
+#define CHUNK 1048576 /* 1MiB */
 
 struct rule_t {
 	const int uid;
@@ -27,10 +28,8 @@ void die(char *msg) {
 	exit(1);
 }
 
-#define CHUNK 1048576 /* 1MiB */
 static uint32 getsha(const char *path, unsigned char *dest) {
 	static sha256_context sha;
-
 	unsigned char buf[CHUNK];
 	uint32 len, tot = 0;
 	FILE *fd;
@@ -70,7 +69,6 @@ int main(int argc, char *argv[]) {
 		for (i = 0; i < nelem(rules); i++)
 			printf("\nuser: %d\ncmd: %s\nbinary: %s\nsha256: %s\n",
 					rules[i].uid, rules[i].cmd, rules[i].path, rules[i].hash);
-
 		return 0;
 	}
 
@@ -87,7 +85,7 @@ int main(int argc, char *argv[]) {
 				die("Can not stat program.");
 
 			if (st.st_mode & 0022)
-				die("Can not run binaries others can write.");
+				die("Can not run writable binaries.");
 
 			if (getsha(rules[i].path, digest) != st.st_size)
 				die("Binary file differs from size read.");
@@ -106,6 +104,5 @@ int main(int argc, char *argv[]) {
 				die("execv failed.");
 		}
 	}
-
 	die("Unauthorized command.");
 }
