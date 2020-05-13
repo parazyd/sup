@@ -23,14 +23,14 @@ clean:
 
 install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f $(BIN) $(DESTDIR)$(PREFIX)/bin
-	chmod 4711 $(DESTDIR)$(PREFIX)/bin/$(BIN)
 	mkdir -p $(DESTDIR)$(MANDIR)
-	cp -r $(MAN) $(DESTDIR)$(MANDIR)
+	cp -f $(BIN) $(DESTDIR)$(PREFIX)/bin
+	cp -f $(MAN) $(DESTDIR)$(MANDIR)
+	chmod 4711 $(DESTDIR)$(PREFIX)/bin/$(BIN)
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(BIN)
-	rm -f $(DESTDIR)$(PREFIX)/$(MAN)
+	rm -f $(DESTDIR)$(MANDIR)/$(MAN)
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
