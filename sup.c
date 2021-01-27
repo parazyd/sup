@@ -23,7 +23,7 @@ struct rule_t {
 
 char *argv0;
 
-void die(char *msg)
+static void die(char *msg)
 {
 	fprintf(stderr, "%s\n", msg);
 	exit(1);
