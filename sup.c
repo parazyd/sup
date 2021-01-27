@@ -10,7 +10,7 @@
 #include "sha256.h"
 
 #define nelem(x) (sizeof (x) / sizeof *(x))
-#define CHUNK 1048576 /* 1MiB */
+#define CHUNK 1048576		/* 1MiB */
 
 struct rule_t {
 	const int uid;
@@ -23,12 +23,14 @@ struct rule_t {
 
 char *argv0;
 
-void die(char *msg) {
+void die(char *msg)
+{
 	fprintf(stderr, "%s\n", msg);
 	exit(1);
 }
 
-static uint32 getsha(const char *path, unsigned char *dest) {
+static uint32 getsha(const char *path, unsigned char *dest)
+{
 	static sha256_context sha;
 	unsigned char buf[CHUNK];
 	uint32 len, tot = 0;
@@ -50,25 +52,27 @@ static uint32 getsha(const char *path, unsigned char *dest) {
 	return tot;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	unsigned int c, i, lflag = 0;
 	unsigned char digest[32];
 	char output[65];
 	struct stat st;
 
 	ARGBEGIN {
-		case 'l':
-			lflag = 1;
-			break;
-		default:
-			die("Usage: sup [-l] command [ args ... ]");
+	case 'l':
+		lflag = 1;
+		break;
+	default:
+		die("Usage: sup [-l] command [ args ... ]");
 	} ARGEND;
 
 	if (lflag) {
 		printf("List of compiled authorizations:\n");
 		for (i = 0; i < nelem(rules); i++)
 			printf("\nuser: %d\ncmd: %s\nbinary: %s\nsha256: %s\n",
-					rules[i].uid, rules[i].cmd, rules[i].path, rules[i].hash);
+			       rules[i].uid, rules[i].cmd, rules[i].path,
+			       rules[i].hash);
 		return 0;
 	}
 
@@ -91,14 +95,16 @@ int main(int argc, char *argv[]) {
 				die("Binary file differs from size read.");
 
 			for (c = 0; c < 32; c++)
-				sprintf(output + (c*2), "%02x", digest[c]);
+				sprintf(output + (c * 2), "%02x", digest[c]);
 			output[64] = '\0';
 
 			if (strncmp(rules[i].hash, output, 64))
 				die("Checksums do not match.");
 
-			if (setgid(SETGID) < 0) die("setgid failed");
-			if (setuid(SETUID) < 0) die("setuid failed");
+			if (setgid(SETGID) < 0)
+				die("setgid failed");
+			if (setuid(SETUID) < 0)
+				die("setuid failed");
 
 			if (execv(rules[i].path, argv) < 0)
 				die("execv failed.");
