@@ -7,9 +7,9 @@ PREFIX = /usr/local
 MANPREFIX = ${PREFIX}/share/man
 
 # use system flags
-SUP_CFLAGS = ${CFLAGS} -Wall -Werror -pedantic -std=c99
+SUP_CFLAGS   = ${CFLAGS} -Wall -Werror -pedantic -std=c99
 SUP_CPPFLAGS = ${CPPFLAGS}
-SUP_LDFLAGS = ${LDFLAGS} -static
+SUP_LDFLAGS  = ${LDFLAGS} -static -s
 
 BIN = sup
 MAN = $(BIN).1
@@ -26,7 +26,7 @@ config.h:
 	$(CC) -c $(SUP_CFLAGS) $(SUP_CPPFLAGS) $<
 
 $(BIN): $(OBJ)
-	$(CC) $(OBJ) $(LDFLAGS) -o $@
+	$(CC) $(OBJ) $(SUP_LDFLAGS) -o $@
 
 clean:
 	rm -f $(BIN) $(OBJ)
